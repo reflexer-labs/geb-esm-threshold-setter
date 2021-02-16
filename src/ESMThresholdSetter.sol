@@ -37,10 +37,14 @@ contract ESMThresholdSetter {
     }
 
     // --- Variables ---
+    // The minimum amount of protocol tokens that must be burned to trigger settlement using the ESM
     uint256           public minAmountToBurn;         // [wad]
+    // The percentage of outstanding protocol tokens to burn in order to trigger settlement using the ESM
     uint256           public supplyPercentageToBurn;  // [thousand]
 
+    // The address of the protocol token
     ProtocolTokenLike public protocolToken;
+    // The address of the ESM contract
     ESMLike           public esm;
 
     // --- Events ---
@@ -84,6 +88,11 @@ contract ESMThresholdSetter {
     }
 
     // --- Administration ---
+    /*
+    * @notify Change the ESM address
+    * @parameter Name of the parameter (should only be "esm")
+    * @param New ESM address
+    */
     function modifyParameters(bytes32 parameter, address addr) external isAuthorized {
         require(addr != address(0), "ESMThresholdSetter/null-addr");
         if (parameter == "esm") {
@@ -93,7 +102,9 @@ contract ESMThresholdSetter {
         } else revert("ESMThresholdSetter/modify-unrecognized-param");
         emit ModifyParameters("esm", addr);
     }
-
+    /*
+    * @notify Calculate and set a new protocol token threshold in the ESM
+    */
     function recomputeThreshold() public {
         require(esm.settled() == 0, "ESMThresholdSetter/esm-disabled");
 
