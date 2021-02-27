@@ -106,12 +106,13 @@ contract ESMThresholdSetter {
     * @notify Calculate and set a new protocol token threshold in the ESM
     */
     function recomputeThreshold() public {
+        // The ESM must still be functional
         require(esm.settled() == 0, "ESMThresholdSetter/esm-disabled");
 
         uint256 currentTokenSupply = protocolToken.totalSupply();
-        if (currentTokenSupply == 0) {
+        if (currentTokenSupply == 0) { // If the current supply is zero, set the min amount to burn
           esm.modifyParameters("triggerThreshold", minAmountToBurn);
-        } else {
+        } else { // Otherwise compute a new threshold taking into account supplyPercentageToBurn
           uint256 newThreshold = multiply(subtract(currentTokenSupply, protocolToken.balanceOf(address(0))), supplyPercentageToBurn) / THOUSAND;
           esm.modifyParameters("triggerThreshold", maximum(minAmountToBurn, newThreshold));
         }
